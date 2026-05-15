@@ -1,0 +1,16 @@
+{
+  "name": "meny-voice-order",
+  "version": "1.0.0",
+  "description": "MENY AI Voice & Chat Ordering Assistant for Norway",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

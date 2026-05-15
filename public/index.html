@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<!-- FIX #15: removed maximum-scale=1.0 for accessibility -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#D62828">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>MENY · AI Bestilling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --paper:#FBF7EE; --cream:#F4EEE2; --cream-2:#ECE4D2;
+  --ink:#1F1B14; --ink-2:#4A4438; --ink-3:#8A8170;
+  --hair:rgba(31,27,20,0.12); --hair-2:rgba(31,27,20,0.06);
+  --meny:#D62828; --meny-deep:#B01E1E; --meny-soft:#FAEAEA;
+  --moss:#4A6A42; --moss-deep:#2D4A2D; --moss-soft:#EEF5EE;
+  --ai-1:oklch(0.78 0.07 295); --ai-2:oklch(0.84 0.05 200);
+  --ai-3:oklch(0.86 0.05 145); --ai-bubble:#F2F0FF;
+  --serif:'Newsreader',Georgia,serif; --sans:'Manrope',-apple-system,sans-serif;
+  --r-sm:10px; --r-md:16px; --r-lg:22px; --r-pill:999px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--cream);}
+body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;}
+#root{height:100%;display:flex;justify-content:center;align-items:stretch;background:var(--cream-2);}
+.app-shell{
+  width:100%;max-width:430px;height:100%;
+  display:flex;flex-direction:column;position:relative;overflow:hidden;
+  background:var(--cream);
+  box-shadow:0 0 80px rgba(31,27,20,0.12);
+}
+button{font-family:var(--sans);cursor:pointer;border:none;background:transparent;color:inherit;}
+input,textarea{font-family:var(--sans);font-size:16px;}
+.scroll{overflow-y:auto;scrollbar-width:none;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* FIX #13: Loading screen (shown before Babel parses) */
+#app-loading{
+  position:fixed;inset:0;background:var(--cream);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:16px;z-index:999;
+}
+#app-loading .logo{font-family:-apple-system,sans-serif;font-weight:900;font-size:28px;letter-spacing:.12em;color:#D62828;}
+#app-loading .dots{display:flex;gap:6px;}
+#app-loading .dot{width:7px;height:7px;border-radius:50%;background:#D62828;animation:ldot 1.2s ease-in-out infinite;}
+#app-loading .dot:nth-child(2){animation-delay:.15s;}
+#app-loading .dot:nth-child(3){animation-delay:.3s;}
+@keyframes ldot{0%,60%,100%{transform:scale(0.6);opacity:.4}30%{transform:scale(1);opacity:1}}
+
+/* Animations */
+@keyframes breathe{0%,100%{transform:scale(1) rotate(0deg)}33%{transform:scale(1.06) rotate(2deg)}66%{transform:scale(0.97) rotate(-2deg)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.08);opacity:1}}
+@keyframes wave{0%,100%{transform:scaleY(0.35)}50%{transform:scaleY(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes dot{0%,60%,100%{opacity:.2;transform:translateY(0)}30%{opacity:1;transform:translateY(-2px)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes shimmer{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
+
+.fade-up{animation:fadeUp .3s ease-out both;}
+.slide-up{animation:slideUp .32s cubic-bezier(0.22,1,0.36,1);}
+.slide-in{animation:slideIn .28s ease-out both;}
+
+/* AI orb gradient */
+.ai-orb{
+  background:
+    radial-gradient(65% 80% at 30% 28%, var(--ai-1), transparent 68%),
+    radial-gradient(55% 70% at 72% 58%, var(--ai-2), transparent 68%),
+    radial-gradient(60% 65% at 52% 88%, var(--ai-3), transparent 68%),
+    var(--paper);
+  position:relative;
+}
+.ai-orb::after{
+  content:'';position:absolute;inset:14%;border-radius:50%;
+  background:radial-gradient(40% 42% at 35% 30%,rgba(255,255,255,.65),transparent 70%);
+  filter:blur(2px);
+}
+.orb-breathe{animation:breathe 6s ease-in-out infinite;}
+.orb-pulse{animation:pulse 1.3s ease-in-out infinite;}
+
+/* Buttons */
+.btn{
+  appearance:none;border:none;cursor:pointer;
+  border-radius:var(--r-pill);padding:13px 22px;
+  font-family:var(--sans);font-weight:600;font-size:15px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform .14s,background .14s,box-shadow .18s;
+}
+.btn:active{transform:scale(.97);}
+.btn-meny{background:var(--meny);color:#fff;}
+.btn-meny:hover{background:var(--meny-deep);}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--hair);}
+.btn-ghost:hover{background:var(--paper);}
+.btn-soft{background:var(--paper);color:var(--ink);border:1px solid var(--hair-2);}
+
+/* Chips */
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:var(--r-pill);
+  background:var(--paper);border:1px solid var(--hair);
+  font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;
+  transition:background .14s;
+}
+.chip:hover{background:var(--cream-2);}
+.chip:active{transform:scale(.97);}
+
+/* Tag pill */
+.tag{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 8px;border-radius:var(--r-pill);
+  font-family:monospace;
+}
+.tag-meny{background:var(--meny-soft);color:var(--meny);}
+.tag-moss{background:var(--moss-soft);color:var(--moss-deep);}
+.tag-ai{background:var(--ai-bubble);color:oklch(0.42 0.1 280);}
+
+/* Scrollable horizontal strip */
+.h-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.h-scroll::-webkit-scrollbar{display:none;}
+
+/* Demo banner */
+.demo-banner{
+  background:#FFF8E1;border-bottom:1px solid #FFE082;
+  padding:8px 16px;font-size:12px;color:#795548;
+  display:flex;align-items:center;gap:6px;
+}
+</style>
+</head>
+<body>
+<!-- FIX #13: Loading screen visible while Babel parses -->
+<div id="app-loading">
+  <div class="logo">MENY</div>
+  <div class="dots">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+</div>
+
+<div id="root"></div>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ═══════════════════════════════════════════════════════════════════
+// FIX #14: Error Boundary
+// ═══════════════════════════════════════════════════════════════════
+class ErrorBoundary extends React.Component {
+  state = { error: null };
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding:32, textAlign:'center', fontFamily:'sans-serif' }}>
+          <div style={{ fontSize:40, marginBottom:16 }}>⚠️</div>
+          <div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>Noe gikk galt</div>
+          <div style={{ fontSize:13, color:'#666', marginBottom:24 }}>{this.state.error.message}</div>
+          <button onClick={() => window.location.reload()}
+            style={{ padding:'10px 20px', background:'#D62828', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontWeight:600 }}>
+            Last inn på nytt
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ICONS (inline SVG components)
+// ═══════════════════════════════════════════════════════════════════
+const Svg = ({d,size=22,fill='none',stroke='currentColor',sw=1.6,...p}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill}
+       stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" {...p}>
+    {d}
+  </svg>
+);
+const I = {
+  mic:     p=><Svg {...p} d={<><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></>}/>,
+  micOff:  p=><Svg {...p} d={<><path d="m2 2 20 20M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V6a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 11m7 7v3"/></>}/>,
+  send:    p=><Svg {...p} d={<path d="M4 12 20 4 13 21l-2-8-7-1Z"/>}/>,
+  cart:    p=><Svg {...p} d={<><path d="M3 4h2.5l2.6 11.5a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.5L21 8H6.6"/><circle cx="10" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></>}/>,
+  check:   p=><Svg {...p} d={<path d="M5 12.5l4.5 4.5L19 7"/>}/>,
+  close:   p=><Svg {...p} d={<><path d="M6 6l12 12M18 6 6 18"/></>}/>,
+  back:    p=><Svg {...p} d={<path d="M14 6l-6 6 6 6"/>}/>,
+  plus:    p=><Svg {...p} d={<><path d="M12 5v14M5 12h14"/></>}/>,
+  minus:   p=><Svg {...p} d={<path d="M5 12h14"/>}/>,
+  trash:   p=><Svg {...p} d={<><path d="M3 7h18M8 7V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 7l-1.5 13a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 7"/></>}/>,
+  spark:   p=><Svg {...p} d={<><path d="M12 4v6M12 14v6M4 12h6M14 12h6"/></>}/>,
+  mail:    p=><Svg {...p} d={<><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 5 9 9 9-9"/></>}/>,
+  lang:    p=><Svg {...p} d={<><circle cx="12" cy="12" r="9"/><path d="M2 12h20M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></>}/>,
+  arrow:   p=><Svg {...p} d={<><path d="M5 12h14M13 6l6 6-6 6"/></>}/>,
+  info:    p=><Svg {...p} d={<><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 11v5"/></>}/>,
+  compose: p=><Svg {...p} d={<><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></>}/>,
+  pin:     p=><Svg {...p} d={<><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></>}/>,
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// FIX #8: Category emoji lookup
+// ═══════════════════════════════════════════════════════════════════
+const CAT_EMOJI = {
+  'Kjøtt & fisk':'🥩','Meat':'🥩','Fish':'🐟',
+  'Meieri':'🥛','Dairy':'🥛',
+  'Bakeri':'🍞','Bakery':'🍞',
+  'Frukt & grønt':'🥦','Produce':'🥦',
+  'Kolonial':'🫙','Pantry':'🫙',
+  'Drikke':'🥤','Drinks':'🥤','Beverages':'🥤',
+  'Frys':'❄️','Frozen':'❄️',
+  'Bakeverk':'🍪','Snacks':'🍪',
+};
+function getCatEmoji(cat) {
+  if (!cat) return '🛍️';
+  return CAT_EMOJI[cat] || '🛍️';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════
+
+// Supported languages in cycle order
+const LANGS = ['no','en','hi','kn'];
+const LANG_LABELS = { no:'Norsk', en:'English', hi:'हिन्दी', kn:'ಕನ್ನಡ' };
+// BCP-47 locale IDs for SpeechRecognition and SpeechSynthesis
+const SPEECH_LOCALE = { no:'nb-NO', en:'en-US', hi:'hi-IN', kn:'kn-IN' };
+
+const QUICK_PROMPTS = [
+  {id:'taco',   emoji:'🌮', no:'Taco til 4 personer',    en:'Tacos for four',        hi:'चार लोगों के लिए टैको',     kn:'ನಾಲ್ಕು ಜನರಿಗೆ ತಾಕೋ'},
+  {id:'laks',   emoji:'🐟', no:'Laks til middag',         en:'Salmon for dinner',     hi:'रात के खाने के लिए सालमन', kn:'ರಾತ್ರಿ ಊಟಕ್ಕೆ ಸಾಲ್ಮನ್'},
+  {id:'frokost',emoji:'🍳', no:'Min vanlige frokost',     en:'My usual breakfast',    hi:'मेरा सामान्य नाश्ता',        kn:'ನನ್ನ ಸಾಮಾನ್ಯ ಉಪಾಹಾರ'},
+  {id:'pasta',  emoji:'🍝', no:'Enkel pasta bolognese',   en:'Simple pasta bolognese',hi:'सरल पास्ता बोलोग्नीज़',     kn:'ಸರಳ ಪಾಸ್ತಾ ಬೊಲೊಗ್ನೀಸ್'},
+];
+
+const T = {
+  no:{
+    morningGreeting: 'God morgen!', afternoonGreeting: 'God dag!', eveningGreeting: 'God kveld!',
+    sub:         'Hva ønsker du å bestille?',
+    tapSpeak:    'Trykk for å snakke',
+    listening:   'Jeg lytter…',
+    processing:  'Tenker…',
+    youSaid:     'Du sa',
+    cancel:      'Avbryt',
+    cart:        'Handlekurv',
+    cartEmpty:   'Handlekurven er tom',
+    cartEmptySub:'Bruk chat eller stemme for å bestille',
+    total:       'Estimert total',
+    sendOrder:   'Send bestilling',
+    sending:     'Sender…',
+    name:        'Ditt navn *',
+    email:       'E-postadresse *',
+    phone:       'Telefon (valgfritt)',
+    address:     'Leveringsadresse (gate, postnr, by) *',
+    addressHint: 'Hjemlevering eller butikkhenting — fyll inn leveringssted',
+    notes:       'Merknad til bestilling (valgfritt)',
+    required:    'Fyll inn navn, e-post og leveringsadresse',
+    invalidEmail:'Ugyldig e-postadresse',
+    orderSent:   'Bestilling sendt!',
+    orderConfirm:'Vi har mottatt bestillingen din',
+    orderBack:   'Ny bestilling',
+    demoMode:    'Demo-modus · Sett opp API-nøkler for full funksjonalitet',
+    addedToCart: 'varer lagt til i kurven',
+    removedFromCart: 'varer fjernet fra kurven',
+    noVoice:     'Stemmegjenkjenning krever Chrome eller Edge',
+    tryAsking:   'Prøv å si noe, f.eks.:',
+    suggestions: ['taco til 4 personer','laks til middag','min vanlige frokost'],
+    followUps:   ['Legg til noe mer','__OPEN_CART__','Fjern en vare'],
+    followUpLabels: ['Legg til noe mer 🛒','Se handlekurven 🛍️','Fjern en vare 🗑️'],
+    // Onboarding slides
+    slide0H1:'Si det du vil ha.', slide0H2:'Vi fikser resten.',
+    slide0Body:'Skriv eller tal norsk og engelsk. MENY AI forstår hva du trenger og setter sammen bestillingen din automatisk.',
+    slide0Quote:'«Taco til 4 i kveld»',
+    slide1Eyebrow:'01 / 02 · STEMME', slide1H1:'Norsk stemme,', slide1H2:'alle dialekter.',
+    slide1Body:'Trykk på mikrofon-knappen og si hva du vil ha. MENY AI forstår norsk (inkl. dialekter), nynorsk og engelsk.',
+    slide1Sample:'"Kylling tikka masala til 6"',
+    slide2Eyebrow:'02 / 02 · BESTILLING', slide2H1:'Bestilling rett', slide2H2:'til e-post.',
+    slide2Body:'Kurven din samles opp og sendes som en pen e-post — komplett med varedetaljer, priser og samtalehistorikk.',
+    slide2EmailLabel:'MENY Bestilling',
+    voiceIdleTitle:'Hva trenger du?',
+    voiceIdleBody:'Snakk norsk eller engelsk — dialekt fungerer fint.',
+    voiceUnsupportedTitle:'Stemme ikke støttet',
+    voiceUnsupportedBody:'Stemmegjenkjenning fungerer i Chrome og Edge. Du kan skrive bestillingen din i chatten i stedet.',
+    voiceUnsupportedBack:'← Tilbake til chat',
+    voiceMicError:'Mikrofon ikke tilgjengelig',
+    voiceMicErrorBody:'Sjekk at du har gitt tillatelse til mikrofon…',
+    resume:'← Fortsett handleturen',
+    continueBtn:'Fortsett', getStarted:'Kom i gang', skip:'Hopp over →',
+    tryThese:'Prøv disse',
+    orderTitle:'MENY Bestilling',
+    items:'varer', total2:'Total',
+    clearCart:'Tøm kurv',
+    requiredFields:'* Obligatoriske felt',
+    demoNote:'🔑 Demo-modus: Sett RESEND_API_KEY og ORDER_EMAIL i Netlify for å sende ekte e-post.',
+    orderError:'Kunne ikke sende bestilling. Prøv igjen.',
+    connectionError:'Beklager, en feil oppstod. Prøv igjen.',
+    clearChat:   'Ny samtale',
+    clearChatConfirm: 'Start en ny samtale? Handlekurven og meldingene slettes.',
+  },
+  en:{
+    morningGreeting: 'Good morning!', afternoonGreeting: 'Good afternoon!', eveningGreeting: 'Good evening!',
+    sub:         'What would you like to order?',
+    tapSpeak:    'Tap to speak',
+    listening:   'Listening…',
+    processing:  'Thinking…',
+    youSaid:     'You said',
+    cancel:      'Cancel',
+    cart:        'Shopping cart',
+    cartEmpty:   'Your cart is empty',
+    cartEmptySub:'Use chat or voice to add items',
+    total:       'Estimated total',
+    sendOrder:   'Send order',
+    sending:     'Sending…',
+    name:        'Your name *',
+    email:       'Email address *',
+    phone:       'Phone (optional)',
+    address:     'Delivery address (street, postcode, city) *',
+    addressHint: 'Home delivery or store pickup — enter where to deliver',
+    notes:       'Order notes (optional)',
+    required:    'Please enter name, email and delivery address',
+    invalidEmail:'Invalid email address',
+    orderSent:   'Order sent!',
+    orderConfirm:'We have received your order',
+    orderBack:   'New order',
+    demoMode:    'Demo mode · Set up API keys for full functionality',
+    addedToCart: 'items added to cart',
+    removedFromCart: 'items removed from cart',
+    noVoice:     'Voice requires Chrome or Edge browser',
+    tryAsking:   'Try asking, for example:',
+    suggestions: ['tacos for four','salmon dinner','my usual breakfast'],
+    followUps:   ['Add more','__OPEN_CART__','Remove an item'],
+    followUpLabels: ['Add more 🛒','View cart 🛍️','Remove an item 🗑️'],
+    slide0H1:'Say what you want.', slide0H2:"We'll handle the rest.",
+    slide0Body:'Type or speak in Norwegian or English. MENY AI understands what you need and builds your order automatically.',
+    slide0Quote:'"Tacos for 4 tonight"',
+    slide1Eyebrow:'01 / 02 · VOICE', slide1H1:'Norwegian voice,', slide1H2:'any dialect.',
+    slide1Body:'Tap the microphone button and say what you want. MENY AI understands Norwegian dialects and English perfectly.',
+    slide1Sample:'"Chicken tikka masala for 6"',
+    slide2Eyebrow:'02 / 02 · ORDER', slide2H1:'Order straight', slide2H2:'to email.',
+    slide2Body:'Your cart is collected and sent as a beautiful email — complete with item details, prices, and conversation history.',
+    slide2EmailLabel:'MENY Order',
+    voiceIdleTitle:'What do you need?',
+    voiceIdleBody:'Speak Norwegian or English — dialects welcome.',
+    voiceUnsupportedTitle:'Voice not supported',
+    voiceUnsupportedBody:'Voice recognition works in Chrome and Edge. You can type your order in the chat instead.',
+    voiceUnsupportedBack:'← Back to chat',
+    voiceMicError:'Microphone unavailable',
+    voiceMicErrorBody:'Check that microphone permission is allowed…',
+    resume:'← Resume shopping',
+    continueBtn:'Continue', getStarted:'Get started', skip:'Skip →',
+    tryThese:'Try these',
+    orderTitle:'MENY Order',
+    items:'items', total2:'Total',
+    clearCart:'Clear cart',
+    requiredFields:'* Required fields',
+    demoNote:'🔑 Demo mode: Set RESEND_API_KEY and ORDER_EMAIL in Netlify to send real emails.',
+    orderError:'Could not send order. Please try again.',
+    connectionError:'Sorry, an error occurred. Please try again.',
+    clearChat:   'New chat',
+    clearChatConfirm: 'Start a new chat? Your cart and messages will be cleared.',
+  },
+  hi:{
+    morningGreeting: 'सुप्रभात!', afternoonGreeting: 'नमस्कार!', eveningGreeting: 'शुभ संध्या!',
+    sub:         'आप क्या ऑर्डर करना चाहेंगे?',
+    tapSpeak:    'बोलने के लिए टैप करें',
+    listening:   'सुन रहा हूँ…',
+    processing:  'सोच रहा हूँ…',
+    youSaid:     'आपने कहा',
+    cancel:      'रद्द करें',
+    cart:        'शॉपिंग कार्ट',
+    cartEmpty:   'आपकी कार्ट खाली है',
+    cartEmptySub:'ऑर्डर करने के लिए चैट या आवाज़ का उपयोग करें',
+    total:       'अनुमानित कुल',
+    sendOrder:   'ऑर्डर भेजें',
+    sending:     'भेज रहे हैं…',
+    name:        'आपका नाम *',
+    email:       'ईमेल पता *',
+    phone:       'फ़ोन (वैकल्पिक)',
+    address:     'डिलीवरी पता (सड़क, पिनकोड, शहर) *',
+    addressHint: 'होम डिलीवरी या स्टोर पिकअप — डिलीवरी स्थान दर्ज करें',
+    notes:       'ऑर्डर नोट्स (वैकल्पिक)',
+    required:    'कृपया नाम, ईमेल और डिलीवरी पता दर्ज करें',
+    invalidEmail:'अमान्य ईमेल पता',
+    orderSent:   'ऑर्डर भेज दिया!',
+    orderConfirm:'हमें आपका ऑर्डर मिल गया है',
+    orderBack:   'नया ऑर्डर',
+    demoMode:    'डेमो मोड · पूर्ण कार्यक्षमता के लिए API कुंजी सेट करें',
+    addedToCart: 'आइटम कार्ट में जोड़े गए',
+    removedFromCart: 'आइटम कार्ट से हटाए गए',
+    noVoice:     'आवाज़ के लिए Chrome या Edge ब्राउज़र आवश्यक है',
+    tryAsking:   'उदाहरण के लिए पूछें:',
+    suggestions: ['चार लोगों के लिए टैको','सालमन डिनर','मेरा सामान्य नाश्ता'],
+    followUps:   ['और जोड़ें','__OPEN_CART__','एक आइटम हटाएं'],
+    followUpLabels: ['और जोड़ें 🛒','कार्ट देखें 🛍️','एक आइटम हटाएं 🗑️'],
+    slide0H1:'जो चाहिए वो बोलें।', slide0H2:'हम बाकी संभाल लेंगे।',
+    slide0Body:'टाइप करें या बोलें — MENY AI आपकी भाषा समझता है और ऑर्डर अपने आप बनाता है।',
+    slide0Quote:'«चार लोगों के लिए टैको»',
+    slide1Eyebrow:'01 / 02 · आवाज़', slide1H1:'अपनी भाषा में', slide1H2:'बोलें।',
+    slide1Body:'माइक बटन दबाएं और अपना ऑर्डर बोलें। MENY AI हिंदी और कन्नड़ दोनों बखूबी समझता है।',
+    slide1Sample:'"चार लोगों के लिए चिकन करी"',
+    slide2Eyebrow:'02 / 02 · ऑर्डर', slide2H1:'ऑर्डर सीधे', slide2H2:'ईमेल पर।',
+    slide2Body:'आपकी कार्ट एक सुंदर ईमेल के रूप में आइटम विवरण, कीमतें और चैट इतिहास के साथ भेजी जाती है।',
+    slide2EmailLabel:'MENY ऑर्डर',
+    voiceIdleTitle:'आपको क्या चाहिए?',
+    voiceIdleBody:'हिंदी या अंग्रेज़ी में बोलें — MENY AI समझेगा।',
+    voiceUnsupportedTitle:'आवाज़ समर्थित नहीं',
+    voiceUnsupportedBody:'Chrome या Edge ब्राउज़र में आवाज़ काम करती है। आप चैट में ऑर्डर टाइप कर सकते हैं।',
+    voiceUnsupportedBack:'← चैट पर वापस',
+    voiceMicError:'माइक्रोफ़ोन उपलब्ध नहीं',
+    voiceMicErrorBody:'जांचें कि माइक्रोफ़ोन अनुमति दी गई है…',
+    resume:'← खरीदारी जारी रखें',
+    continueBtn:'जारी रखें', getStarted:'शुरू करें', skip:'छोड़ें →',
+    tryThese:'इन्हें आज़माएं',
+    orderTitle:'MENY ऑर्डर',
+    items:'आइटम', total2:'कुल',
+    clearCart:'कार्ट खाली करें',
+    requiredFields:'* आवश्यक फ़ील्ड',
+    demoNote:'🔑 डेमो मोड: वास्तविक ईमेल भेजने के लिए Netlify में RESEND_API_KEY और ORDER_EMAIL सेट करें।',
+    orderError:'ऑर्डर नहीं भेजा जा सका। कृपया पुनः प्रयास करें।',
+    connectionError:'क्षमा करें, एक त्रुटि हुई। कृपया पुनः प्रयास करें।',
+    clearChat:   'नई चैट',
+    clearChatConfirm: 'नई चैट शुरू करें? आपकी कार्ट और संदेश हट जाएंगे।',
+  },
+  kn:{
+    morningGreeting: 'ಶುಭ ಬೆಳಿಗ್ಗೆ!', afternoonGreeting: 'ಶುಭ ಮಧ್ಯಾಹ್ನ!', eveningGreeting: 'ಶುಭ ಸಂಜೆ!',
+    sub:         'ನೀವು ಏನು ಆರ್ಡರ್ ಮಾಡಲು ಬಯಸುತ್ತೀರಿ?',
+    tapSpeak:    'ಮಾತನಾಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ',
+    listening:   'ಕೇಳುತ್ತಿದ್ದೇನೆ…',
+    processing:  'ಯೋಚಿಸುತ್ತಿದ್ದೇನೆ…',
+    youSaid:     'ನೀವು ಹೇಳಿದ್ದು',
+    cancel:      'ರದ್ದು',
+    cart:        'ಶಾಪಿಂಗ್ ಕಾರ್ಟ್',
+    cartEmpty:   'ನಿಮ್ಮ ಕಾರ್ಟ್ ಖಾಲಿಯಾಗಿದೆ',
+    cartEmptySub:'ಆರ್ಡರ್ ಮಾಡಲು ಚಾಟ್ ಅಥವಾ ಧ್ವನಿ ಬಳಸಿ',
+    total:       'ಅಂದಾಜು ಒಟ್ಟು',
+    sendOrder:   'ಆರ್ಡರ್ ಕಳುಹಿಸಿ',
+    sending:     'ಕಳುಹಿಸುತ್ತಿದ್ದೇನೆ…',
+    name:        'ನಿಮ್ಮ ಹೆಸರು *',
+    email:       'ಇಮೇಲ್ ವಿಳಾಸ *',
+    phone:       'ಫೋನ್ (ಐಚ್ಛಿಕ)',
+    address:     'ವಿತರಣಾ ವಿಳಾಸ (ಬೀದಿ, ಪಿನ್‌ಕೋಡ್, ನಗರ) *',
+    addressHint: 'ಮನೆ ವಿತರಣೆ ಅಥವಾ ಅಂಗಡಿ ಪಿಕಪ್ — ವಿತರಣಾ ಸ್ಥಳ ನಮೂದಿಸಿ',
+    notes:       'ಆರ್ಡರ್ ಟಿಪ್ಪಣಿಗಳು (ಐಚ್ಛಿಕ)',
+    required:    'ಕೃಪಯಾ ಹೆಸರು, ಇಮೇಲ್ ಮತ್ತು ವಿತರಣಾ ವಿಳಾಸ ನಮೂದಿಸಿ',
+    invalidEmail:'ಅಮಾನ್ಯ ಇಮೇಲ್ ವಿಳಾಸ',
+    orderSent:   'ಆರ್ಡರ್ ಕಳುಹಿಸಲಾಗಿದೆ!',
+    orderConfirm:'ನಾವು ನಿಮ್ಮ ಆರ್ಡರ್ ಸ್ವೀಕರಿಸಿದ್ದೇವೆ',
+    orderBack:   'ಹೊಸ ಆರ್ಡರ್',
+    demoMode:    'ಡೆಮೊ ಮೋಡ್ · ಸಂಪೂರ್ಣ ಕಾರ್ಯಕ್ಷಮತೆಗೆ API ಕೀ ಹೊಂದಿಸಿ',
+    addedToCart: 'ವಸ್ತುಗಳನ್ನು ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಲಾಗಿದೆ',
+    removedFromCart: 'ವಸ್ತುಗಳನ್ನು ಕಾರ್ಟ್‌ನಿಂದ ತೆಗೆದುಹಾಕಲಾಗಿದೆ',
+    noVoice:     'ಧ್ವನಿಗೆ Chrome ಅಥವಾ Edge ಬ್ರೌಸರ್ ಅಗತ್ಯ',
+    tryAsking:   'ಉದಾಹರಣೆಗೆ ಹೇಳಿ:',
+    suggestions: ['ನಾಲ್ಕು ಜನರಿಗೆ ತಾಕೋ','ಸಾಲ್ಮನ್ ಡಿನ್ನರ್','ನನ್ನ ಸಾಮಾನ್ಯ ಉಪಾಹಾರ'],
+    followUps:   ['ಇನ್ನಷ್ಟು ಸೇರಿಸಿ','__OPEN_CART__','ಒಂದು ಐಟಂ ತೆಗೆದುಹಾಕಿ'],
+    followUpLabels: ['ಇನ್ನಷ್ಟು ಸೇರಿಸಿ 🛒','ಕಾರ್ಟ್ ನೋಡಿ 🛍️','ಒಂದು ಐಟಂ ತೆಗೆದುಹಾಕಿ 🗑️'],
+    slide0H1:'ನೀವು ಏನು ಬೇಕಾದರೂ ಹೇಳಿ।', slide0H2:'ನಾವು ಬಾಕಿ ನಿಭಾಯಿಸುತ್ತೇವೆ।',
+    slide0Body:'ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಮಾತನಾಡಿ — MENY AI ನಿಮ್ಮ ಭಾಷೆ ಅರ್ಥ ಮಾಡಿಕೊಂಡು ಆರ್ಡರ್ ತಯಾರಿಸುತ್ತದೆ।',
+    slide0Quote:'«ನಾಲ್ಕು ಜನರಿಗೆ ತಾಕೋ ಇಂದು ರಾತ್ರಿ»',
+    slide1Eyebrow:'01 / 02 · ಧ್ವನಿ', slide1H1:'ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ', slide1H2:'ಮಾತನಾಡಿ।',
+    slide1Body:'ಮೈಕ್ ಬಟನ್ ಒತ್ತಿ ನಿಮ್ಮ ಆರ್ಡರ್ ಹೇಳಿ। MENY AI ಕನ್ನಡ ಮತ್ತು ಹಿಂದಿ ಎರಡನ್ನೂ ಅರ್ಥ ಮಾಡಿಕೊಳ್ಳುತ್ತದೆ।',
+    slide1Sample:'"ನಾಲ್ಕು ಜನರಿಗೆ ಚಿಕನ್ ಕರಿ"',
+    slide2Eyebrow:'02 / 02 · ಆರ್ಡರ್', slide2H1:'ಆರ್ಡರ್ ನೇರವಾಗಿ', slide2H2:'ಇಮೇಲ್‌ಗೆ।',
+    slide2Body:'ನಿಮ್ಮ ಕಾರ್ಟ್ ಅನ್ನು ಐಟಂ ವಿವರಗಳು, ಬೆಲೆಗಳು ಮತ್ತು ಚಾಟ್ ಇತಿಹಾಸದೊಂದಿಗೆ ಸುಂದರ ಇಮೇಲ್ ಆಗಿ ಕಳುಹಿಸಲಾಗುತ್ತದೆ।',
+    slide2EmailLabel:'MENY ಆರ್ಡರ್',
+    voiceIdleTitle:'ನಿಮಗೆ ಏನು ಬೇಕು?',
+    voiceIdleBody:'ಕನ್ನಡ ಅಥವಾ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಮಾತನಾಡಿ — MENY AI ಅರ್ಥ ಮಾಡಿಕೊಳ್ಳುತ್ತದೆ।',
+    voiceUnsupportedTitle:'ಧ್ವನಿ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ',
+    voiceUnsupportedBody:'Chrome ಅಥವಾ Edge ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಕಾರ್ಯ ಮಾಡುತ್ತದೆ. ಚಾಟ್‌ನಲ್ಲಿ ಟೈಪ್ ಮಾಡಬಹುದು.',
+    voiceUnsupportedBack:'← ಚಾಟ್‌ಗೆ ಹಿಂತಿರುಗಿ',
+    voiceMicError:'ಮೈಕ್ರೋಫೋನ್ ಲಭ್ಯವಿಲ್ಲ',
+    voiceMicErrorBody:'ಮೈಕ್ರೋಫೋನ್ ಅನುಮತಿ ನೀಡಲಾಗಿದೆಯೇ ಎಂದು ಪರಿಶೀಲಿಸಿ…',
+    resume:'← ಖರೀದಿ ಮುಂದುವರಿಸಿ',
+    continueBtn:'ಮುಂದುವರಿಸಿ', getStarted:'ಪ್ರಾರಂಭಿಸಿ', skip:'ಬಿಟ್ಟುಬಿಡಿ →',
+    tryThese:'ಇವುಗಳನ್ನು ಪ್ರಯತ್ನಿಸಿ',
+    orderTitle:'MENY ಆರ್ಡರ್',
+    items:'ವಸ್ತುಗಳು', total2:'ಒಟ್ಟು',
+    clearCart:'ಕಾರ್ಟ್ ಖಾಲಿ ಮಾಡಿ',
+    requiredFields:'* ಅಗತ್ಯ ಕ್ಷೇತ್ರಗಳು',
+    demoNote:'🔑 ಡೆಮೊ ಮೋಡ್: ನಿಜವಾದ ಇಮೇಲ್ ಕಳುಹಿಸಲು Netlify ನಲ್ಲಿ RESEND_API_KEY ಮತ್ತು ORDER_EMAIL ಹೊಂದಿಸಿ.',
+    orderError:'ಆರ್ಡರ್ ಕಳುಹಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
+    connectionError:'ಕ್ಷಮಿಸಿ, ಒಂದು ದೋಷ ಸಂಭವಿಸಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
+    clearChat:   'ಹೊಸ ಚಾಟ್',
+    clearChatConfirm: 'ಹೊಸ ಚಾಟ್ ಪ್ರಾರಂಭಿಸಬೇಕೇ? ನಿಮ್ಮ ಕಾರ್ಟ್ ಮತ್ತು ಸಂದೇಶಗಳು ತೆಗೆದುಹಾಕಲ್ಪಡುತ್ತವೆ.',
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════════
+
+// Render simple markdown (bold, italic, line breaks) safely — no dangerouslySetInnerHTML.
+// Returns a <span> wrapping the parsed content (never a bare array).
+function renderMarkdown(text) {
+  if (!text) return React.createElement('span', null);
+  const elements = [];
+  const re = /(\*\*(.+?)\*\*|\*(.+?)\*|\n)/g;
+  let last = 0, match, key = 0;
+  while ((match = re.exec(text)) !== null) {
+    if (match.index > last) elements.push(text.slice(last, match.index));
+    if (match[0] === '\n') {
+      elements.push(React.createElement('br', { key: key++ }));
+    } else if (match[0].startsWith('**')) {
+      elements.push(React.createElement('strong', { key: key++ }, match[2]));
+    } else {
+      elements.push(React.createElement('em', { key: key++ }, match[3]));
+    }
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) elements.push(text.slice(last));
+  return React.createElement('span', null, ...elements);
+}
+
+// Normalise a product name to its root word for fuzzy matching.
+// "Tomater 400g", "ferske Tomater", "TOMATER" all → "tomater"
+function normName(name) {
+  return name.toLowerCase()
+    .replace(/\b\d+\s*(g|kg|ml|l|stk|pk|cl)\b/gi, '') // strip weights/units
+    .replace(/\b(fersk[et]?|norsk[et]?|økologisk[et]?)\b/gi, '') // strip adjectives
+    .replace(/\s+/g, ' ').trim();
+}
+
+function mergeCart(existing, newItems) {
+  const merged = [...existing];
+  newItems.forEach(item => {
+    // 1. Exact match (case-insensitive)
+    let idx = merged.findIndex(i => i.name.toLowerCase() === item.name.toLowerCase());
+    // 2. Fuzzy match on normalised root name
+    if (idx < 0) idx = merged.findIndex(i => normName(i.name) === normName(item.name));
+    if (idx >= 0) {
+      merged[idx] = { ...merged[idx], qty: merged[idx].qty + item.qty };
+    } else {
+      merged.push({ ...item, id: `${Date.now()}-${Math.random().toString(36).slice(2)}` });
+    }
+  });
+  return merged;
+}
+
+// FIX #3: speak only when fromVoice
+function speak(text, lang) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const clean = text.replace(/[*#_`<>]/g, '').substring(0, 400);
+  const u = new SpeechSynthesisUtterance(clean);
+  u.lang = SPEECH_LOCALE[lang] || 'en-US';
+  u.rate = 1.05;
+  window.speechSynthesis.speak(u);
+}
+
+function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+// ═══════════════════════════════════════════════════════════════════
+// UI PRIMITIVES
+// ═══════════════════════════════════════════════════════════════════
+
+// Dropdown language picker — shows all 4 languages, checkmark on current.
+function LangPicker({ lang, onChange }) {
+  const [open, setOpen] = useState(false);
+  // Close on outside click
+  const ref = React.useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position:'relative' }}>
+      <button
+        className="chip"
+        style={{ padding:'5px 10px', gap:5, fontSize:12 }}
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <I.lang size={13}/>
+        <span>{LANG_LABELS[lang]}</span>
+        <span style={{ fontSize:9, opacity:.55, marginLeft:1 }}>▾</span>
+      </button>
+
+      {open && (
+        <div role="listbox" style={{
+          position:'absolute', top:'calc(100% + 6px)', right:0,
+          background:'var(--paper)', border:'1px solid var(--hair)',
+          borderRadius:'var(--r-md)', boxShadow:'0 8px 28px rgba(31,27,20,.14)',
+          minWidth:148, zIndex:200, overflow:'hidden',
+        }}>
+          {LANGS.map(l => (
+            <button
+              key={l}
+              role="option"
+              aria-selected={l === lang}
+              onClick={() => { onChange(l); setOpen(false); }}
+              style={{
+                display:'flex', alignItems:'center', gap:9, width:'100%',
+                padding:'11px 14px', border:'none', background:'transparent',
+                cursor:'pointer', textAlign:'left', fontFamily:'var(--sans)',
+                fontSize:14, fontWeight: l === lang ? 700 : 400,
+                color: l === lang ? 'var(--meny)' : 'var(--ink)',
+                transition:'background .1s',
+              }}
+              onMouseOver={e => e.currentTarget.style.background = 'var(--cream)'}
+              onMouseOut={e  => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ width:16, flexShrink:0, display:'flex', alignItems:'center' }}>
+                {l === lang && <I.check size={14} sw={2.5}/>}
+              </span>
+              {LANG_LABELS[l]}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AIOrb({ size=80, phase='idle' }) {
+  const animClass = phase === 'listening' ? 'orb-pulse' : 'orb-breathe';
+  const shadow = phase === 'listening'
+    ? '0 0 0 14px rgba(197,188,255,.18), 0 0 0 28px rgba(197,188,255,.08)'
+    : '0 8px 32px rgba(31,27,20,.12)';
+  return (
+    <div className={`ai-orb ${animClass}`} style={{
+      width:size, height:size, borderRadius:'50%', flexShrink:0,
+      boxShadow:shadow, transition:'box-shadow .3s ease',
+    }}/>
+  );
+}
+
+function Bubble({ from, children }) {
+  const isAI = from === 'ai';
+  return (
+    <div className="slide-in" style={{
+      display:'flex', justifyContent: isAI ? 'flex-start' : 'flex-end',
+      gap:8, marginBottom:4, alignItems:'flex-end',
+    }}>
+      {isAI && <AIOrb size={28} phase="idle"/>}
+      <div style={{
+        maxWidth:'76%', padding:'11px 15px',
+        borderRadius: isAI ? '4px 18px 18px 18px' : '18px 4px 18px 18px',
+        background: isAI ? 'var(--ai-bubble)' : 'var(--meny)',
+        color: isAI ? 'var(--ink)' : '#fff',
+        fontSize:15, lineHeight:1.5,
+        boxShadow: isAI ? '0 1px 0 rgba(255,255,255,.6) inset' : 'none',
+      }}>{children}</div>
+    </div>
+  );
+}
+
+function TypingDots() {
+  const dot = i => (
+    <span key={i} style={{
+      display:'inline-block', width:5, height:5, borderRadius:'50%',
+      background:'var(--ink-3)', margin:'0 1.5px',
+      animation:`dot 1.2s ${i * 0.15}s ease-in-out infinite`,
+    }}/>
+  );
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:8, paddingBottom:8 }}>
+      <AIOrb size={28}/>
+      <div style={{ padding:'10px 14px', borderRadius:'4px 18px 18px 18px', background:'var(--ai-bubble)' }}>
+        {[0,1,2].map(dot)}
+      </div>
+    </div>
+  );
+}
+
+function Waveform({ active, bars=22, color='var(--meny)' }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:3, height:48 }}>
+      {Array.from({length:bars}).map((_,i) => {
+        const h = 10 + Math.abs(Math.sin((i+1)*.8)) * 26;
+        return <span key={i} style={{
+          display:'inline-block', width:3, height:h, borderRadius:999, background:color,
+          animation: active ? `wave ${0.7+(i%5)*.14}s ease-in-out infinite` : 'none',
+          animationDelay:`${i*.04}s`, opacity: active ? 1 : 0.3,
+          transformOrigin:'center', transition:'height .2s',
+        }}/>;
+      })}
+    </div>
+  );
+}
+
+function Stepper({ qty, onChange }) {
+  return (
+    <div style={{ display:'inline-flex', alignItems:'center',
+      background:'var(--paper)', border:'1px solid var(--hair)', borderRadius:999, padding:2 }}>
+      <button onClick={()=>onChange(Math.max(0,qty-1))} style={{
+        width:28, height:28, borderRadius:'50%', border:'none', background:'transparent',
+        display:'grid', placeItems:'center', cursor:'pointer',
+      }}><I.minus size={14}/></button>
+      <span style={{ minWidth:22, textAlign:'center', fontWeight:600, fontSize:13 }}>{qty}</span>
+      <button onClick={()=>onChange(qty+1)} style={{
+        width:28, height:28, borderRadius:'50%', border:'none',
+        background:'var(--meny)', color:'#fff',
+        display:'grid', placeItems:'center', cursor:'pointer',
+      }}><I.plus size={14}/></button>
+    </div>
+  );
+}
+
+// FIX #6: CartItemRow — added delete button; FIX #8: category emoji
+function CartItemRow({ item, onQty, onDelete }) {
+  return (
+    <div style={{
+      display:'flex', alignItems:'center', gap:10, padding:'10px 0',
+      borderBottom:'1px solid var(--hair-2)',
+    }}>
+      <div style={{
+        width:38, height:38, borderRadius:'var(--r-sm)', flexShrink:0,
+        background:'var(--cream-2)', display:'grid', placeItems:'center',
+        fontSize:18,
+      }}>{getCatEmoji(item.category)}</div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontWeight:600, fontSize:14, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name}</div>
+        <div style={{ fontSize:12, color:'var(--ink-3)' }}>
+          {item.category && <span style={{ marginRight:6 }}>{item.category}</span>}
+          {item.price > 0 && <span style={{ fontWeight:600, color:'var(--ink-2)' }}>{item.price * item.qty} kr</span>}
+        </div>
+      </div>
+      <Stepper qty={item.qty} onChange={q => onQty(item.id, q)}/>
+      <button onClick={() => onDelete(item.id)} style={{
+        width:30, height:30, borderRadius:'50%', border:'none',
+        background:'transparent', color:'var(--ink-3)', cursor:'pointer',
+        display:'grid', placeItems:'center', flexShrink:0,
+        transition:'color .14s, background .14s',
+      }} onMouseOver={e=>{e.currentTarget.style.color='var(--meny)';e.currentTarget.style.background='var(--meny-soft)';}}
+         onMouseOut={e=>{e.currentTarget.style.color='var(--ink-3)';e.currentTarget.style.background='transparent';}}>
+        <I.trash size={15}/>
+      </button>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ONBOARDING SCREEN
+// ═══════════════════════════════════════════════════════════════════
+function OnboardingScreen({ onDone, lang, setLang, hasActiveSession }) {
+  const [step, setStep] = useState(0);
+  const t = T[lang] || T.en;
+
+  const slides = [
+    {
+      eyebrow: 'MENY AI',
+      headline: <><i>{t.slide0H1}</i><br/>{t.slide0H2}</>,
+      body: t.slide0Body,
+      visual: (
+        <div style={{ position:'relative', width:'100%', height:220 }}>
+          <div style={{
+            position:'absolute', inset:'30px 0 0 0',
+            background:'repeating-linear-gradient(135deg,rgba(31,27,20,.05) 0 1px,transparent 1px 10px),var(--cream-2)',
+            borderRadius:20,
+          }}/>
+          <div className="ai-orb orb-breathe" style={{
+            position:'absolute', width:110, height:110, borderRadius:'50%',
+            top:40, right:28, boxShadow:'0 12px 40px rgba(31,27,20,.14)',
+          }}/>
+          <div style={{
+            position:'absolute', left:16, bottom:16,
+            background:'var(--paper)', borderRadius:14, padding:'10px 14px',
+            boxShadow:'0 4px 18px rgba(31,27,20,.1)', fontSize:13,
+            border:'1px solid var(--hair-2)',
+          }}>
+            <div style={{ color:'var(--ink-3)', fontSize:10, fontFamily:'monospace', marginBottom:2 }}>YOU</div>
+            {t.slide0Quote}
+          </div>
+        </div>
+      ),
+    },
+    {
+      eyebrow: t.slide1Eyebrow,
+      headline: <>{t.slide1H1}<br/><i>{t.slide1H2}</i></>,
+      body: t.slide1Body,
+      visual: (
+        <div style={{ display:'flex', flexDirection:'column', gap:12, alignItems:'center', paddingTop:20 }}>
+          <div style={{ position:'relative' }}>
+            <AIOrb size={100} phase="listening"/>
+            <div style={{
+              position:'absolute', bottom:-8, left:'50%', transform:'translateX(-50%)',
+              background:'var(--meny)', color:'#fff', borderRadius:99, padding:'3px 10px',
+              fontSize:11, fontWeight:700, whiteSpace:'nowrap',
+            }}>{t.listening}</div>
+          </div>
+          <Waveform active bars={20} color="var(--meny)"/>
+          <div style={{
+            background:'var(--ai-bubble)', borderRadius:14, padding:'10px 14px',
+            fontSize:13, color:'var(--ink-2)', maxWidth:280, textAlign:'center',
+          }}>
+            {t.slide1Sample}
+          </div>
+        </div>
+      ),
+    },
+    {
+      eyebrow: t.slide2Eyebrow,
+      headline: <>{t.slide2H1}<br/><i>{t.slide2H2}</i></>,
+      body: t.slide2Body,
+      visual: (
+        <div style={{ padding:16, background:'var(--paper)', borderRadius:16, border:'1px solid var(--hair-2)' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+            <div style={{
+              width:36, height:36, borderRadius:10, background:'var(--meny)',
+              display:'grid', placeItems:'center', color:'#fff',
+            }}><I.mail size={16}/></div>
+            <div>
+              <div style={{ fontWeight:700, fontSize:13 }}>{t.slide2EmailLabel}</div>
+              <div style={{ fontSize:11, color:'var(--ink-3)' }}>orders@meny.no</div>
+            </div>
+          </div>
+          {['Kyllingfilet 500g × 2','Basmatiris 1kg × 1','Tomater × 3'].map((row,i)=>(
+            <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderTop:'1px solid var(--hair-2)', fontSize:13 }}>
+              <span style={{ color:'var(--ink-2)' }}>{row}</span>
+              <span style={{ fontWeight:600 }}>{[178,39,75][i]} kr</span>
+            </div>
+          ))}
+          <div style={{ display:'flex', justifyContent:'space-between', marginTop:8, paddingTop:8, borderTop:'2px solid var(--meny)' }}>
+            <span style={{ fontWeight:700 }}>{t.total2}</span>
+            <span style={{ fontWeight:700, color:'var(--meny)' }}>292 kr</span>
+          </div>
+        </div>
+      ),
+    },
+  ];
+  const s = slides[step];
+
+  return (
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', padding:'48px 28px 28px', background:'var(--cream)' }}>
+      {/* logo + language picker */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+        <div style={{ fontFamily:'var(--sans)', fontWeight:900, fontSize:22, letterSpacing:'.1em', color:'var(--meny)' }}>MENY</div>
+        <LangPicker lang={lang} onChange={setLang}/>
+      </div>
+
+      {/* Resume banner */}
+      {hasActiveSession && (
+        <button onClick={onDone} style={{
+          display:'flex', alignItems:'center', justifyContent:'space-between',
+          width:'100%', padding:'12px 16px', marginBottom:12,
+          background:'var(--meny)', color:'#fff', border:'none',
+          borderRadius:14, cursor:'pointer', fontSize:14, fontWeight:600,
+        }}>
+          <span>{t.resume}</span>
+          <I.arrow size={16}/>
+        </button>
+      )}
+
+      {/* visual */}
+      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:'8px 0' }}>
+        {s.visual}
+      </div>
+
+      {/* text */}
+      <div style={{ marginBottom:24 }}>
+        <div style={{ fontFamily:'monospace', fontSize:10, letterSpacing:'.1em', textTransform:'uppercase', color:'var(--ink-3)', marginBottom:6 }}>{s.eyebrow}</div>
+        <div style={{ fontFamily:'var(--serif)', fontSize:34, lineHeight:1.1, marginBottom:12 }}>{s.headline}</div>
+        <div style={{ color:'var(--ink-2)', fontSize:15, lineHeight:1.55 }}>{s.body}</div>
+      </div>
+
+      {/* progress + button */}
+      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+        <div style={{ display:'flex', gap:5, flex:1 }}>
+          {[0,1,2].map(i=>(
+            <span key={i} style={{
+              height:4, flex: i===step ? 2.5 : 1, borderRadius:99,
+              background: i===step ? 'var(--meny)' : 'var(--cream-2)',
+              transition:'flex .25s ease, background .2s',
+            }}/>
+          ))}
+        </div>
+        {step < 2 ? (
+          <button className="btn btn-meny" onClick={()=>setStep(s=>s+1)} style={{ minWidth:120 }}>
+            {t.continueBtn} <I.arrow size={15}/>
+          </button>
+        ) : (
+          <button className="btn btn-meny" onClick={onDone} style={{ minWidth:120 }}>
+            {t.getStarted} <I.arrow size={15}/>
+          </button>
+        )}
+      </div>
+      {step < 2 && (
+        <button onClick={onDone} style={{
+          marginTop:14, background:'transparent', border:'none', color:'var(--ink-3)',
+          fontSize:13, cursor:'pointer', textAlign:'center',
+        }}>
+          {t.skip}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// VOICE OVERLAY
+// FIX #1: stale closure fixed with transcriptRef
+// ═══════════════════════════════════════════════════════════════════
+function VoiceOverlay({ lang, onClose, onTranscript }) {
+  const [phase, setPhase] = useState('idle'); // idle | listening | processing | unsupported | error
+  const [displayTranscript, setDisplayTranscript] = useState('');
+  const transcriptRef = useRef('');   // always current — never stale in callbacks
+  const recRef = useRef(null);
+  const t = T[lang];
+
+  const start = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { setPhase('unsupported'); return; }
+    const rec = new SR();
+    rec.lang = SPEECH_LOCALE[lang] || 'en-US';
+    rec.continuous = false;
+    rec.interimResults = true;
+
+    rec.onstart = () => { transcriptRef.current = ''; setDisplayTranscript(''); setPhase('listening'); };
+
+    rec.onresult = e => {
+      const txt = Array.from(e.results).map(r => r[0].transcript).join('');
+      transcriptRef.current = txt;          // update ref immediately
+      setDisplayTranscript(txt);            // update display state
+    };
+
+    rec.onend = () => {
+      if (recRef.current === rec && transcriptRef.current) {
+        setPhase('processing');
+        setTimeout(() => {
+          onTranscript(transcriptRef.current);  // always the latest value
+          onClose();
+        }, 700);
+      } else {
+        setPhase('idle');
+      }
+    };
+
+    rec.onerror = (e) => {
+      transcriptRef.current = '';
+      setPhase('error');
+      setTimeout(() => setPhase('idle'), 3000);
+    };
+    rec.start();
+    recRef.current = rec;
+  };
+
+  const stop = () => {
+    recRef.current?.stop();
+    if (!transcriptRef.current) setPhase('idle');
+  };
+
+  const handleMic = () => {
+    if (phase === 'idle') start();
+    else if (phase === 'listening') stop();
+    else onClose();
+  };
+
+  return (
+    <div className="slide-up" style={{
+      position:'absolute', inset:0, zIndex:60,
+      background:'linear-gradient(180deg, oklch(0.94 0.025 290), var(--cream) 55%)',
+      display:'flex', flexDirection:'column', padding:'48px 24px 36px',
+    }}>
+      {/* header */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <button onClick={onClose} style={{
+          width:36, height:36, borderRadius:'50%', border:'1px solid var(--hair)',
+          background:'var(--paper)', display:'grid', placeItems:'center',
+        }}><I.close size={17}/></button>
+        <span style={{ fontFamily:'monospace', fontSize:11, letterSpacing:'.1em', textTransform:'uppercase', color:'var(--ink-3)' }}>
+          {phase === 'listening' ? t.listening : phase === 'processing' ? t.processing : t.tapSpeak}
+        </span>
+        <div style={{ width:36 }}/>
+      </div>
+
+      {/* orb */}
+      <div style={{ flex:1, display:'grid', placeItems:'center' }}>
+        <div style={{ position:'relative', textAlign:'center' }}>
+          {[0,1,2].map(i => (
+            <div key={i} className={`ai-orb ${phase==='listening'?'orb-pulse':'orb-breathe'}`} style={{
+              position: i===0 ? 'relative' : 'absolute',
+              inset: i===0 ? 'auto' : `${i*14}px`,
+              width: i===0 ? 180 : 'auto', height: i===0 ? 180 : 'auto',
+              borderRadius:'50%',
+              opacity: 0.28 + i * 0.28,
+              animationDelay:`${i*.18}s`,
+              ...(i===0 ? {} : { pointerEvents:'none' }),
+            }}/>
+          ))}
+        </div>
+      </div>
+
+      {/* transcript / status */}
+      <div style={{ minHeight:110, marginBottom:20 }}>
+        {phase === 'unsupported' && (
+          <div style={{ textAlign:'center', padding:'0 8px' }}>
+            <div style={{ fontSize:48, marginBottom:14 }}>🎙️</div>
+            <div style={{ fontFamily:'var(--serif)', fontSize:20, marginBottom:10 }}>
+              {t.voiceUnsupportedTitle}
+            </div>
+            <div style={{ fontSize:14, color:'var(--ink-2)', lineHeight:1.55, marginBottom:20 }}>
+              {t.voiceUnsupportedBody}
+            </div>
+            <button className="btn btn-ghost" onClick={onClose}>
+              {t.voiceUnsupportedBack}
+            </button>
+          </div>
+        )}
+        {phase === 'error' && (
+          <div style={{ textAlign:'center' }}>
+            <div style={{ fontSize:40, marginBottom:12 }}>⚠️</div>
+            <div style={{ fontFamily:'var(--serif)', fontSize:18, marginBottom:8 }}>
+              {t.voiceMicError}
+            </div>
+            <div style={{ fontSize:13, color:'var(--ink-3)' }}>
+              {t.voiceMicErrorBody}
+            </div>
+          </div>
+        )}
+        {phase === 'idle' && (
+          <div style={{ textAlign:'center' }}>
+            <div style={{ fontFamily:'var(--serif)', fontSize:22, marginBottom:8 }}>
+              {t.voiceIdleTitle}
+            </div>
+            <div style={{ fontSize:13, color:'var(--ink-3)', marginBottom:16 }}>
+              {t.voiceIdleBody}
+            </div>
+            <div style={{ fontSize:12, color:'var(--ink-3)', marginBottom:8 }}>{t.tryAsking}</div>
+            <div className="h-scroll" style={{ justifyContent:'center', flexWrap:'wrap', gap:6 }}>
+              {t.suggestions.map((s,i) => (
+                <span key={i} className="chip" style={{ fontSize:12 }}
+                  onClick={()=>{ transcriptRef.current = s; onTranscript(s); onClose(); }}>
+                  «{s}»
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {phase === 'listening' && (
+          <div>
+            <div style={{ fontFamily:'monospace', fontSize:11, letterSpacing:'.1em', textTransform:'uppercase', color:'var(--ink-3)', marginBottom:8 }}>{t.youSaid}</div>
+            <div style={{ fontFamily:'var(--serif)', fontSize:22, lineHeight:1.3, marginBottom:12, minHeight:32 }}>
+              {displayTranscript || '…'}
+              <span style={{
+                display:'inline-block', width:2, height:20, marginLeft:2,
+                background:'var(--meny)', verticalAlign:'middle',
+                animation:'pulse .8s ease-in-out infinite',
+              }}/>
+            </div>
+            <Waveform active bars={24} color="var(--meny)"/>
+          </div>
+        )}
+        {phase === 'processing' && (
+          <div style={{ textAlign:'center' }}>
+            <div style={{ fontFamily:'var(--serif)', fontSize:20, color:'var(--ink-2)', marginBottom:8 }}>{displayTranscript}</div>
+            <div style={{ color:'var(--ink-3)', fontSize:13 }}>{t.processing}</div>
+          </div>
+        )}
+      </div>
+
+      {/* mic button — hidden when unsupported */}
+      <div style={{ display:'flex', justifyContent:'center' }}>
+        <button onClick={handleMic} style={{
+          display: phase === 'unsupported' ? 'none' : 'grid',
+          width:80, height:80, borderRadius:'50%', border:'none', cursor:'pointer',
+          background: phase==='listening' ? 'var(--meny)' : 'var(--paper)',
+          color: phase==='listening' ? '#fff' : 'var(--meny)',
+          display:'grid', placeItems:'center',
+          boxShadow: phase==='listening'
+            ? '0 0 0 8px rgba(214,40,40,.18), 0 0 0 16px rgba(214,40,40,.08), 0 8px 24px rgba(214,40,40,.3)'
+            : '0 2px 12px rgba(31,27,20,.1), 0 0 0 1px var(--hair)',
+          transition:'all .2s ease',
+          animation: phase==='listening' ? 'pulse 1.6s ease-in-out infinite' : 'none',
+        }}>
+          {phase==='listening' ? <I.mic size={34}/> : <I.mic size={30}/>}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CART PANEL
+// FIX #6: onDelete passed through
+// ═══════════════════════════════════════════════════════════════════
+function CartPanel({ cart, lang, onClose, onUpdateQty, onDeleteItem, onClearCart, onOrder }) {
+  const t = T[lang] || T.en;
+  const total = cart.reduce((s,i) => s + (i.price||0)*i.qty, 0);
+  const count = cart.reduce((s,i) => s + i.qty, 0);
+
+  return (
+    <div style={{
+      position:'absolute', inset:0, zIndex:50,
+      background:'rgba(31,27,20,.45)',
+      display:'flex', flexDirection:'column', justifyContent:'flex-end',
+    }} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="slide-up" style={{
+        background:'var(--paper)', borderRadius:'20px 20px 0 0',
+        maxHeight:'80%', display:'flex', flexDirection:'column',
+        paddingBottom:`calc(20px + var(--safe-b))`,
+      }}>
+        {/* drag handle */}
+        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
+          <div style={{ width:36, height:4, borderRadius:99, background:'var(--cream-2)' }}/>
+        </div>
+
+        {/* header */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0 20px 14px', borderBottom:'1px solid var(--hair-2)' }}>
+          <div>
+            <div style={{ fontFamily:'var(--serif)', fontSize:22 }}>{t.cart}</div>
+            {count > 0 && <div style={{ fontSize:12, color:'var(--ink-3)', marginTop:2 }}>{count} {t.items}</div>}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            {cart.length > 0 && (
+              <button onClick={onClearCart} style={{
+                fontSize:12, color:'var(--ink-3)', background:'transparent', border:'none',
+                cursor:'pointer', padding:'4px 8px', borderRadius:6,
+                transition:'color .14s',
+              }} onMouseOver={e=>e.currentTarget.style.color='var(--meny)'}
+                 onMouseOut={e=>e.currentTarget.style.color='var(--ink-3)'}>
+                {t.clearCart}
+              </button>
+            )}
+            <button onClick={onClose} style={{ width:34, height:34, borderRadius:'50%', border:'1px solid var(--hair)', background:'var(--cream)', display:'grid', placeItems:'center' }}>
+              <I.close size={16}/>
+            </button>
+          </div>
+        </div>
+
+        {/* items */}
+        <div className="scroll" style={{ flex:1, padding:'8px 20px' }}>
+          {cart.length === 0 ? (
+            <div style={{ padding:'40px 0', textAlign:'center', color:'var(--ink-3)' }}>
+              <I.cart size={36} stroke="var(--ink-3)"/>
+              <div style={{ marginTop:10, fontFamily:'var(--serif)', fontSize:18 }}>{t.cartEmpty}</div>
+              <div style={{ fontSize:13, marginTop:4 }}>{t.cartEmptySub}</div>
+            </div>
+          ) : (
+            cart.map(item => (
+              <CartItemRow key={item.id} item={item} onQty={onUpdateQty} onDelete={onDeleteItem}/>
+            ))
+          )}
+        </div>
+
+        {/* footer */}
+        {cart.length > 0 && (
+          <div style={{ padding:'16px 20px 0', borderTop:'1px solid var(--hair-2)' }}>
+            {total > 0 && (
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:14, alignItems:'baseline' }}>
+                <span style={{ fontSize:13, color:'var(--ink-2)' }}>{t.total}</span>
+                <span style={{ fontFamily:'var(--serif)', fontSize:24, fontWeight:400 }}>{total} kr</span>
+              </div>
+            )}
+            <button className="btn btn-meny" style={{ width:'100%', height:52 }} onClick={onOrder}>
+              <I.mail size={18}/> {t.sendOrder}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ORDER FORM MODAL
+// FIX #7: delivery address field; FIX #9: required markers in labels
+// ═══════════════════════════════════════════════════════════════════
+function OrderFormModal({ cart, lang, onClose, onSend, sending }) {
+  const [name, setName]       = useState('');
+  const [email, setEmail]     = useState('');
+  const [phone, setPhone]     = useState('');
+  const [address, setAddress] = useState('');
+  const [notes, setNotes]     = useState('');
+  const [err, setErr]         = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const t = T[lang] || T.en;
+  const total = cart.reduce((s,i) => s + (i.price||0)*i.qty, 0);
+
+  const submit = () => {
+    const errs = {};
+    if (!name.trim()) errs.name = true;
+    if (!email.trim()) errs.email = true;
+    else if (!isValidEmail(email)) errs.email = true;
+    if (!address.trim()) errs.address = true;
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      setErr(!isValidEmail(email) && email.trim() ? t.invalidEmail : t.required);
+      return;
+    }
+    setFieldErrors({});
+    setErr('');
+    onSend({ name, email, phone, address, notes });
+  };
+
+  const inputStyle = (field) => ({
+    width:'100%', padding:'12px 14px', borderRadius:'var(--r-sm)',
+    border: `1px solid ${fieldErrors[field] ? 'var(--meny)' : 'var(--hair)'}`,
+    background: fieldErrors[field] ? 'var(--meny-soft)' : 'var(--paper)',
+    fontSize:16, outline:'none', fontFamily:'var(--sans)',
+    transition:'border-color .15s, background .15s',
+  });
+
+  return (
+    <div style={{
+      position:'absolute', inset:0, zIndex:70,
+      background:'rgba(31,27,20,.5)',
+      display:'flex', flexDirection:'column', justifyContent:'flex-end',
+    }} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="slide-up" style={{
+        background:'var(--paper)', borderRadius:'20px 20px 0 0',
+        maxHeight:'92%', display:'flex', flexDirection:'column',
+        paddingBottom:`calc(24px + var(--safe-b))`,
+      }}>
+        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
+          <div style={{ width:36, height:4, borderRadius:99, background:'var(--cream-2)' }}/>
+        </div>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'4px 20px 16px' }}>
+          <div style={{ fontFamily:'var(--serif)', fontSize:22 }}>{t.sendOrder}</div>
+          <button onClick={onClose} style={{ width:34, height:34, borderRadius:'50%', border:'1px solid var(--hair)', background:'var(--cream)', display:'grid', placeItems:'center' }}>
+            <I.close size={16}/>
+          </button>
+        </div>
+
+        <div className="scroll" style={{ flex:1, padding:'0 20px', overflowY:'auto' }}>
+          {/* cart summary */}
+          <div style={{ background:'var(--cream)', borderRadius:'var(--r-sm)', padding:'12px 14px', marginBottom:20, border:'1px solid var(--hair-2)' }}>
+            <div style={{ fontSize:12, color:'var(--ink-3)', marginBottom:6 }}>
+              {cart.length} {t.items}{total > 0 ? ` · ${total} kr` : ''}
+            </div>
+            <div style={{ fontSize:13, color:'var(--ink-2)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              {cart.slice(0,3).map(i=>i.name).join(', ')}{cart.length > 3 ? ` +${cart.length-3}` : ''}
+            </div>
+          </div>
+
+          {/* fields */}
+          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            <input style={inputStyle('name')} placeholder={t.name} value={name}
+              onChange={e=>{setName(e.target.value); setFieldErrors(p=>({...p,name:false}));}}/>
+            <input style={inputStyle('email')} placeholder={t.email} type="email" value={email}
+              onChange={e=>{setEmail(e.target.value); setFieldErrors(p=>({...p,email:false}));}}/>
+            <input style={inputStyle('phone')} placeholder={t.phone} type="tel" value={phone}
+              onChange={e=>setPhone(e.target.value)}/>
+            {/* Delivery address with icon + hint */}
+            <div>
+              <div style={{ position:'relative' }}>
+                <I.pin size={16} style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color: fieldErrors.address ? 'var(--meny)' : 'var(--ink-3)', pointerEvents:'none' }}/>
+                <input style={{ ...inputStyle('address'), paddingLeft:36 }} placeholder={t.address} value={address}
+                  onChange={e=>{setAddress(e.target.value); setFieldErrors(p=>({...p,address:false}));}}/>
+              </div>
+              <div style={{ fontSize:11, color:'var(--ink-3)', marginTop:4, paddingLeft:2 }}>{t.addressHint}</div>
+            </div>
+            <textarea style={{ ...inputStyle('notes'), height:76, resize:'none' }} placeholder={t.notes} value={notes}
+              onChange={e=>setNotes(e.target.value)}/>
+          </div>
+
+          {err && (
+            <div style={{ marginTop:12, padding:'10px 14px', background:'var(--meny-soft)', color:'var(--meny)', borderRadius:'var(--r-sm)', fontSize:13 }}>
+              {err}
+            </div>
+          )}
+
+          <div style={{ marginTop:10, fontSize:11, color:'var(--ink-3)' }}>
+            {t.requiredFields}
+          </div>
+        </div>
+
+        <div style={{ padding:'16px 20px 0' }}>
+          <button className="btn btn-meny" style={{ width:'100%', height:52 }} onClick={submit} disabled={sending}>
+            {sending
+              ? <><span style={{ animation:'shimmer 1s infinite' }}>●●●</span></>
+              : <><I.mail size={18}/> {t.sendOrder}{total>0?` · ${total} kr`:''}</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SUCCESS SCREEN
+// ═══════════════════════════════════════════════════════════════════
+function SuccessScreen({ orderId, lang, onReset, isDemo }) {
+  const t = T[lang];
+  return (
+    <div style={{
+      height:'100%', display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center',
+      padding:'40px 28px', textAlign:'center', background:'var(--cream)',
+    }}>
+      <div className="fade-up" style={{
+        width:90, height:90, borderRadius:'50%', background:'var(--moss)',
+        display:'grid', placeItems:'center', marginBottom:24,
+        animation:'pulse 2.4s ease-in-out infinite',
+        boxShadow:'0 12px 32px rgba(74,106,66,.28)',
+      }}>
+        <I.check size={44} stroke="#fff" sw={2.2}/>
+      </div>
+      <div className="fade-up" style={{ animationDelay:'.1s' }}>
+        <div style={{ fontFamily:'monospace', fontSize:11, letterSpacing:'.1em', color:'var(--ink-3)', marginBottom:8 }}>{orderId}</div>
+        <div style={{ fontFamily:'var(--serif)', fontSize:34, marginBottom:12 }}>{t.orderSent}</div>
+        <div style={{ color:'var(--ink-2)', fontSize:15, marginBottom: isDemo ? 8 : 32 }}>{t.orderConfirm}</div>
+        {isDemo && (
+          <div style={{
+            background:'#FFF8E1', borderRadius:10, padding:'10px 16px',
+            fontSize:13, color:'#795548', marginBottom:32, border:'1px solid #FFE082',
+          }}>
+            {(T[lang]||T.en).demoNote}
+          </div>
+        )}
+      </div>
+      <button className="btn btn-ghost fade-up" style={{ animationDelay:'.2s' }} onClick={onReset}>
+        {t.orderBack}
+      </button>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════════
+function Toast({ msg }) {
+  return (
+    <div className="fade-up" style={{
+      position:'absolute', left:'50%', bottom:100,
+      transform:'translateX(-50%)',
+      padding:'10px 16px', borderRadius:99,
+      background:'var(--ink)', color:'var(--paper)',
+      fontSize:13, fontWeight:500, whiteSpace:'nowrap',
+      boxShadow:'0 8px 24px rgba(31,27,20,.22)',
+      zIndex:80, display:'flex', alignItems:'center', gap:7,
+    }}>
+      <I.check size={14} sw={2.5}/> {msg}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CHAT SCREEN
+// FIX #10: suggestedReplies chips shown after AI responds
+// ═══════════════════════════════════════════════════════════════════
+function ChatScreen({
+  messages, isLoading, cart, lang, isDemo,
+  onSend, onVoice, onCartOpen, onLangChange, suggestedReplies, onClearSuggestions, onHome, onClearChat,
+}) {
+  const [input, setInput] = useState('');
+  const bottomRef = useRef(null);
+  const t = T[lang] || T.en;
+  const cartCount = cart.reduce((s,i) => s+i.qty, 0);
+  const hr = new Date().getHours();
+  const greeting = hr < 12 ? t.morningGreeting : hr < 18 ? t.afternoonGreeting : t.eveningGreeting;
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior:'smooth' });
+  }, [messages, isLoading, suggestedReplies]);
+
+  const submit = () => {
+    if (input.trim()) { onClearSuggestions(); onSend(input, false); setInput(''); }
+  };
+
+  const handleChip = (value) => {
+    onClearSuggestions();
+    if (value === '__OPEN_CART__') { onCartOpen(); return; }
+    onSend(value, false);
+  };
+
+  return (
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', background:'var(--cream)' }}>
+      {/* demo banner */}
+      {isDemo && (
+        <div className="demo-banner">
+          <I.info size={14}/> {t.demoMode}
+        </div>
+      )}
+
+      {/* header */}
+      <div style={{
+        display:'flex', alignItems:'center', gap:10, padding:'16px 16px 12px',
+        background:'rgba(244,238,226,.92)', backdropFilter:'blur(20px)',
+        borderBottom:'1px solid var(--hair-2)',
+      }}>
+        <button
+          onClick={onHome}
+          title="Tilbake til start"
+          style={{
+            flex:1, display:'flex', alignItems:'center', gap:7,
+            background:'none', border:'none', padding:0, cursor:'pointer',
+            fontFamily:'var(--sans)', fontWeight:900, fontSize:20,
+            letterSpacing:'.1em', color:'var(--meny)',
+          }}
+        >
+          <span style={{ opacity:.5, flexShrink:0, display:'flex', alignItems:'center' }}>
+            <I.back size={15}/>
+          </span>
+          MENY
+        </button>
+        <LangPicker lang={lang} onChange={onLangChange}/>
+        {(messages.length > 0 || cartCount > 0) && (
+          <button
+            onClick={() => { if (window.confirm(t.clearChatConfirm)) onClearChat(); }}
+            title={t.clearChat}
+            style={{
+              width:38, height:38, borderRadius:'50%',
+              border:'1px solid var(--hair)', background:'var(--paper)',
+              display:'grid', placeItems:'center', cursor:'pointer',
+              color:'var(--ink-3)', flexShrink:0,
+              transition:'color .15s, background .15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color='var(--meny)'; e.currentTarget.style.background='var(--meny-soft)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color='var(--ink-3)'; e.currentTarget.style.background='var(--paper)'; }}
+          >
+            <I.compose size={16}/>
+          </button>
+        )}
+        <button onClick={onCartOpen} style={{
+          position:'relative', width:38, height:38, borderRadius:'50%',
+          border:'1px solid var(--hair)', background:'var(--paper)',
+          display:'grid', placeItems:'center', cursor:'pointer',
+        }}>
+          <I.cart size={18}/>
+          {cartCount > 0 && (
+            <span style={{
+              position:'absolute', top:-4, right:-4,
+              minWidth:18, height:18, borderRadius:99,
+              background:'var(--meny)', color:'#fff',
+              fontSize:11, fontWeight:700, padding:'0 4px',
+              display:'grid', placeItems:'center',
+            }}>{cartCount}</span>
+          )}
+        </button>
+      </div>
+
+      {/* messages */}
+      <div className="scroll" style={{ flex:1, overflowY:'auto', padding:'16px 14px 8px', display:'flex', flexDirection:'column', gap:4 }}>
+        {messages.length === 0 ? (
+          <div className="fade-up" style={{ paddingTop:8 }}>
+            <div style={{ display:'flex', gap:12, alignItems:'flex-start', marginBottom:20 }}>
+              <AIOrb size={48} phase="idle"/>
+              <div>
+                <div style={{ fontFamily:'monospace', fontSize:10, letterSpacing:'.08em', color:'var(--ink-3)', marginBottom:4, textTransform:'uppercase' }}>MENY AI</div>
+                <div style={{ fontFamily:'var(--serif)', fontSize:26, lineHeight:1.15 }}>
+                  {greeting}<br/>
+                  <span style={{ color:'var(--ink-3)', fontSize:20 }}>{t.sub}</span>
+
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom:10 }}>
+              <div style={{ fontFamily:'monospace', fontSize:10, letterSpacing:'.1em', textTransform:'uppercase', color:'var(--ink-3)', marginBottom:10 }}>
+                {t.tryThese}
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {QUICK_PROMPTS.map(p => (
+                  <button key={p.id} onClick={()=>{onClearSuggestions(); onSend(p[lang]||p.en, false);}} style={{
+                    display:'flex', alignItems:'center', gap:10,
+                    padding:'13px 16px', background:'var(--paper)',
+                    border:'1px solid var(--hair-2)', borderRadius:'var(--r-md)',
+                    cursor:'pointer', textAlign:'left', fontSize:15, fontWeight:500,
+                    transition:'background .14s',
+                  }}>
+                    <span style={{
+                      width:32, height:32, borderRadius:'50%', background:'var(--cream-2)',
+                      display:'grid', placeItems:'center', fontSize:16, flexShrink:0,
+                    }}>{p.emoji}</span>
+                    <span style={{ flex:1 }}>{p[lang]||p.en}</span>
+                    <I.arrow size={15} stroke="var(--ink-3)"/>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          messages.map((m, i) => (
+            <Bubble key={i} from={m.role==='user'?'user':'ai'}>
+              {m.role==='user' ? m.content : renderMarkdown(m.content)}
+            </Bubble>
+          ))
+        )}
+        {isLoading && <TypingDots/>}
+
+        {/* FIX #10: follow-up suggestion chips after AI responds */}
+        {!isLoading && suggestedReplies.length > 0 && (
+          <div className="fade-up" style={{ marginTop:6, marginBottom:4 }}>
+            <div className="h-scroll">
+              {suggestedReplies.map((val, i) => {
+                const label = t.followUpLabels ? t.followUpLabels[i] : val;
+                return (
+                  <button key={i} className="chip" onClick={()=>handleChip(val)}
+                    style={{ fontSize:13, color:'var(--ink-2)' }}>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div ref={bottomRef}/>
+      </div>
+
+      {/* input bar */}
+      <div style={{
+        padding:'10px 12px',
+        paddingBottom:`calc(14px + var(--safe-b))`,
+        background:'rgba(251,247,238,.94)',
+        backdropFilter:'blur(20px) saturate(160%)',
+        borderTop:'1px solid var(--hair-2)',
+      }}>
+        <div style={{
+          display:'flex', gap:8, alignItems:'center',
+          background:'var(--paper)', borderRadius:999,
+          border:'1px solid var(--hair)', padding:'6px 6px 6px 16px',
+        }}>
+          <input
+            value={input}
+            onChange={e=>setInput(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&submit()}
+            placeholder={t.tapSpeak}
+            style={{
+              flex:1, border:'none', background:'transparent', outline:'none',
+              fontFamily:'var(--sans)', fontSize:16, color:'var(--ink)',
+            }}
+          />
+          <button onClick={onVoice} style={{
+            width:38, height:38, borderRadius:'50%', border:'none',
+            background:'var(--cream-2)', display:'grid', placeItems:'center',
+            color:'var(--ink-2)', cursor:'pointer',
+          }}><I.mic size={17}/></button>
+          <button onClick={submit} disabled={!input.trim()} style={{
+            width:38, height:38, borderRadius:'50%', border:'none',
+            background: input.trim() ? 'var(--meny)' : 'var(--cream-2)',
+            color: input.trim() ? '#fff' : 'var(--ink-3)',
+            display:'grid', placeItems:'center', cursor: input.trim() ? 'pointer' : 'default',
+            transition:'background .15s',
+          }}><I.send size={16}/></button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// APP ROOT
+// ═══════════════════════════════════════════════════════════════════
+function App() {
+  // FIX #5: skip onboarding if already seen
+  const [screen, setScreen]     = useState(() => localStorage.getItem('meny_seen') ? 'chat' : 'onboarding');
+  // Language: persist across sessions
+  const [lang, setLang]         = useState(() => localStorage.getItem('meny_lang') || 'no');
+  // FIX #4: restore cart from localStorage; also restore messages so cart has context
+  const [messages, setMessages] = useState(() => {
+    try { const s = localStorage.getItem('meny_messages'); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  const [cart, setCart]         = useState(() => {
+    try { const s = localStorage.getItem('meny_cart'); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  const [isLoading, setLoading] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [cartOpen, setCartOpen]   = useState(false);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [sending, setSending]     = useState(false);
+  const [toast, setToast]         = useState(null);
+  const [orderId, setOrderId]     = useState(null);
+  const [isDemo, setIsDemo]       = useState(false);
+  const [successDemo, setSuccessDemo] = useState(false);
+  // FIX #10: follow-up chips state
+  const [suggestedReplies, setSuggestedReplies] = useState([]);
+  const toastTimer = useRef(null);
+
+  // FIX #13: remove loading screen once app renders
+  useEffect(() => {
+    const el = document.getElementById('app-loading');
+    if (el) el.style.display = 'none';
+  }, []);
+
+  // FIX #4: persist cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('meny_cart', JSON.stringify(cart));
+  }, [cart]);
+
+  // Persist messages so cart has context after refresh
+  useEffect(() => {
+    // Only keep last 30 messages to avoid bloating localStorage
+    localStorage.setItem('meny_messages', JSON.stringify(messages.slice(-30)));
+  }, [messages]);
+
+  const showToast = useCallback((msg) => {
+    setToast(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2200);
+  }, []);
+
+  // ── Send message to AI ───────────────────────────────────────────
+  // FIX #3: fromVoice param — TTS only when triggered by voice
+  // FIX #11: cart sent to API so Claude knows current state
+  // FIX #12: handle removeItems from API
+  const sendMessage = useCallback(async (text, fromVoice = false) => {
+    if (!text?.trim() || isLoading) return;
+    setSuggestedReplies([]);   // clear chips on new send
+    const userMsg = { role:'user', content:text };
+    const newMsgs = [...messages, userMsg];
+    setMessages(newMsgs);
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/chat', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ messages: newMsgs, lang, cart }),
+      });
+      const data = await res.json();
+      if (data.error && !data.text) throw new Error(data.error);
+
+      const aiMsg = { role:'assistant', content: data.text || (T[lang]||T.en).connectionError };
+      setMessages(m => [...m, aiMsg]);
+
+      if (data.cartItems?.length > 0) {
+        setCart(prev => mergeCart(prev, data.cartItems));
+        showToast(`${data.cartItems.length} ${T[lang].addedToCart}`);
+      }
+
+      // FIX #12: remove items from cart
+      if (data.removeItems?.length > 0) {
+        setCart(prev => {
+          const filtered = prev.filter(item =>
+            !data.removeItems.some(name => item.name.toLowerCase().includes(name.toLowerCase()))
+          );
+          if (filtered.length < prev.length) {
+            showToast(`${prev.length - filtered.length} ${T[lang].removedFromCart}`);
+          }
+          return filtered;
+        });
+      }
+
+      if (data.demo) setIsDemo(true);
+
+      // FIX #3: only speak on voice
+      if (fromVoice && data.text) speak(data.text, lang);
+
+      // FIX #10: show follow-up chips if items were added
+      if (data.cartItems?.length > 0 || newMsgs.length > 1) {
+        setSuggestedReplies(T[lang].followUps);
+      }
+    } catch (e) {
+      console.error('Chat error:', e);
+      setMessages(m => [...m, { role:'assistant', content: (T[lang]||T.en).connectionError }]);
+    } finally {
+      setLoading(false);
+    }
+  }, [messages, lang, isLoading, showToast, cart]);
+
+  // ── Send order ───────────────────────────────────────────────────
+  // FIX #7: deliveryAddress forwarded to backend
+  const sendOrder = useCallback(async ({ name, email, phone, address, notes }) => {
+    setSending(true);
+    try {
+      const res = await fetch('/api/send-order', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          cart, customerName:name, customerEmail:email,
+          customerPhone:phone, deliveryAddress:address,
+          notes, chatHistory:messages,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed');
+      setOrderId(data.orderId);
+      setSuccessDemo(!!data.demo);
+      setCart([]);
+      setMessages([]);
+      setSuggestedReplies([]);
+      setOrderOpen(false);
+      setCartOpen(false);
+      setScreen('success');
+    } catch (e) {
+      console.error('Order error:', e);
+      alert((T[lang]||T.en).orderError);
+    } finally {
+      setSending(false);
+    }
+  }, [cart, messages, lang]);
+
+  // ── Cart ops ─────────────────────────────────────────────────────
+  const updateQty = useCallback((id, qty) => {
+    setCart(prev => qty <= 0 ? prev.filter(i=>i.id!==id) : prev.map(i=>i.id===id ? {...i,qty} : i));
+  }, []);
+
+  const deleteItem = useCallback((id) => {
+    setCart(prev => prev.filter(i => i.id !== id));
+  }, []);
+
+  const clearCart = useCallback(() => setCart([]), []);
+
+  // FIX #5: mark onboarding seen in localStorage
+  const onboardingDone = () => {
+    localStorage.setItem('meny_seen', '1');
+    setScreen('chat');
+  };
+
+  const reset = () => {
+    setMessages([]);
+    setCart([]);
+    setIsDemo(false);
+    setSuggestedReplies([]);
+    localStorage.removeItem('meny_messages');
+    setScreen('chat');
+  };
+
+  const clearChat = useCallback(() => {
+    setMessages([]);
+    setCart([]);
+    setIsDemo(false);
+    setSuggestedReplies([]);
+    localStorage.removeItem('meny_messages');
+    localStorage.removeItem('meny_cart');
+  }, []);
+
+  // Persist lang choice and sync html[lang] attribute
+  const changeLang = useCallback((newLang) => {
+    if (!LANGS.includes(newLang)) return;
+    setLang(newLang);
+    localStorage.setItem('meny_lang', newLang);
+  }, []);
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
+
+  // ── Screens ──────────────────────────────────────────────────────
+  if (screen === 'onboarding') {
+    return (
+      <div className="app-shell">
+        <ErrorBoundary>
+          <OnboardingScreen onDone={onboardingDone} lang={lang} setLang={setLang} hasActiveSession={messages.length > 0}/>
+        </ErrorBoundary>
+      </div>
+    );
+  }
+
+  if (screen === 'success') {
+    return (
+      <div className="app-shell">
+        <ErrorBoundary>
+          <SuccessScreen orderId={orderId} lang={lang} onReset={reset} isDemo={successDemo}/>
+        </ErrorBoundary>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-shell">
+      <ErrorBoundary>
+        <ChatScreen
+          messages={messages} isLoading={isLoading} cart={cart}
+          lang={lang} isDemo={isDemo}
+          suggestedReplies={suggestedReplies}
+          onClearSuggestions={() => setSuggestedReplies([])}
+          onSend={sendMessage}
+          onVoice={()=>setVoiceOpen(true)}
+          onCartOpen={()=>setCartOpen(true)}
+          onLangChange={changeLang}
+          onHome={() => setScreen('onboarding')}
+          onClearChat={clearChat}
+        />
+
+        {voiceOpen && (
+          <VoiceOverlay
+            lang={lang}
+            onClose={()=>setVoiceOpen(false)}
+            onTranscript={(txt)=>{ setVoiceOpen(false); sendMessage(txt, true); }}
+          />
+        )}
+
+        {cartOpen && (
+          <CartPanel
+            cart={cart} lang={lang}
+            onClose={()=>setCartOpen(false)}
+            onUpdateQty={updateQty}
+            onDeleteItem={deleteItem}
+            onClearCart={()=>{ clearCart(); }}
+            onOrder={()=>{ setCartOpen(false); setOrderOpen(true); }}
+          />
+        )}
+
+        {orderOpen && (
+          <OrderFormModal
+            cart={cart} lang={lang}
+            onClose={()=>setOrderOpen(false)}
+            onSend={sendOrder}
+            sending={sending}
+          />
+        )}
+
+        {toast && <Toast msg={toast}/>}
+      </ErrorBoundary>
+    </div>
+  );
+}
+
+// Surface uncaught JS errors as visible text instead of a blank screen
+window.addEventListener('error', (e) => {
+  const el = document.getElementById('app-loading');
+  if (el) {
+    el.innerHTML = `<div style="font-family:monospace;font-size:13px;padding:32px;color:#D62828;max-width:600px;word-break:break-word;">
+      <strong>MENY AI — startup error</strong><br><br>
+      ${e.message}<br><br>
+      ${e.filename}:${e.lineno}:${e.colno}
+    </div>`;
+    el.style.display = 'flex';
+  }
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const el = document.getElementById('app-loading');
+  if (el) {
+    el.innerHTML = `<div style="font-family:monospace;font-size:13px;padding:32px;color:#D62828;max-width:600px;word-break:break-word;">
+      <strong>MENY AI — unhandled promise</strong><br><br>${e.reason}
+    </div>`;
+    el.style.display = 'flex';
+  }
+});
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <ErrorBoundary>
+    <App/>
+  </ErrorBoundary>
+);
+</script>
+</body>
+</html>
