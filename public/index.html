@@ -229,12 +229,32 @@ const LANG_LABELS = { no:'Norsk', en:'English', hi:'हिन्दी', kn:'ಕ
 // BCP-47 locale IDs for SpeechRecognition and SpeechSynthesis
 const SPEECH_LOCALE = { no:'nb-NO', en:'en-US', hi:'hi-IN', kn:'kn-IN' };
 
-const QUICK_PROMPTS = [
-  {id:'taco',   emoji:'🌮', no:'Taco til 4 personer',    en:'Tacos for four',        hi:'चार लोगों के लिए टैको',     kn:'ನಾಲ್ಕು ಜನರಿಗೆ ತಾಕೋ'},
-  {id:'laks',   emoji:'🐟', no:'Laks til middag',         en:'Salmon for dinner',     hi:'रात के खाने के लिए सालमन', kn:'ರಾತ್ರಿ ಊಟಕ್ಕೆ ಸಾಲ್ಮನ್'},
-  {id:'frokost',emoji:'🍳', no:'Min vanlige frokost',     en:'My usual breakfast',    hi:'मेरा सामान्य नाश्ता',        kn:'ನನ್ನ ಸಾಮಾನ್ಯ ಉಪಾಹಾರ'},
-  {id:'pasta',  emoji:'🍝', no:'Enkel pasta bolognese',   en:'Simple pasta bolognese',hi:'सरल पास्ता बोलोग्नीज़',     kn:'ಸರಳ ಪಾಸ್ತಾ ಬೊಲೊಗ್ನೀಸ್'},
-];
+const QUICK_PROMPTS = {
+  no: [
+    {id:'taco',    emoji:'🌮', text:'Taco til 4 personer'},
+    {id:'laks',    emoji:'🐟', text:'Laks til middag'},
+    {id:'frokost', emoji:'🍳', text:'Min vanlige frokost'},
+    {id:'pasta',   emoji:'🍝', text:'Enkel pasta bolognese'},
+  ],
+  en: [
+    {id:'tacos',     emoji:'🌮', text:'Tacos for four'},
+    {id:'salmon',    emoji:'🐟', text:'Salmon for dinner'},
+    {id:'breakfast', emoji:'🍳', text:'My usual breakfast'},
+    {id:'pasta',     emoji:'🍝', text:'Simple pasta bolognese'},
+  ],
+  hi: [
+    {id:'dal',     emoji:'🍚', text:'चावल, दाल और सब्ज़ी'},
+    {id:'paneer',  emoji:'🥘', text:'पनीर बटर मसाला'},
+    {id:'atta',    emoji:'🫓', text:'आटा, दूध और घी'},
+    {id:'biryani', emoji:'🍗', text:'चिकन बिरयानी सामग्री'},
+  ],
+  kn: [
+    {id:'dal',     emoji:'🍚', text:'ಅನ್ನ, ಸಾಂಬಾರ್ ಮತ್ತು ಪಲ್ಯ'},
+    {id:'dosa',    emoji:'🥘', text:'ಮಸಾಲೆ ದೋಸೆ ಸಾಮಗ್ರಿ'},
+    {id:'roti',    emoji:'🫓', text:'ರೊಟ್ಟಿ, ಹಾಲು ಮತ್ತು ತುಪ್ಪ'},
+    {id:'biryani', emoji:'🍗', text:'ಚಿಕನ್ ಬಿರಿಯಾನಿ ಸಾಮಗ್ರಿ'},
+  ],
+};
 
 const T = {
   no:{
@@ -559,18 +579,22 @@ function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 // Dropdown language picker — shows all 4 languages, checkmark on current.
 function LangPicker({ lang, onChange }) {
   const [open, setOpen] = useState(false);
-  // Close on outside click
-  const ref = React.useRef(null);
+  const [pos, setPos] = useState({ top:0, right:0 });
+  const btnRef = React.useRef(null);
+
   useEffect(() => {
     if (!open) return;
-    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const rect = btnRef.current?.getBoundingClientRect();
+    if (rect) setPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+    const close = (e) => { if (!e.target.closest('[data-langpicker]')) setOpen(false); };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, [open]);
 
   return (
-    <div ref={ref} style={{ position:'relative' }}>
+    <div style={{ position:'relative' }}>
       <button
+        ref={btnRef}
         className="chip"
         style={{ padding:'5px 10px', gap:5, fontSize:12 }}
         onClick={() => setOpen(o => !o)}
@@ -583,11 +607,11 @@ function LangPicker({ lang, onChange }) {
       </button>
 
       {open && (
-        <div role="listbox" style={{
-          position:'absolute', top:'calc(100% + 6px)', right:0,
+        <div data-langpicker role="listbox" style={{
+          position:'fixed', top: pos.top, right: pos.right,
           background:'var(--paper)', border:'1px solid var(--hair)',
           borderRadius:'var(--r-md)', boxShadow:'0 8px 28px rgba(31,27,20,.14)',
-          minWidth:148, zIndex:200, overflow:'hidden',
+          minWidth:148, zIndex:1000, overflow:'hidden',
         }}>
           {LANGS.map(l => (
             <button
@@ -1447,8 +1471,8 @@ function ChatScreen({
                 {t.tryThese}
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                {QUICK_PROMPTS.map(p => (
-                  <button key={p.id} onClick={()=>{onClearSuggestions(); onSend(p[lang]||p.en, false);}} style={{
+                {(QUICK_PROMPTS[lang] || QUICK_PROMPTS.en).map(p => (
+                  <button key={p.id} onClick={()=>{onClearSuggestions(); onSend(p.text, false);}} style={{
                     display:'flex', alignItems:'center', gap:10,
                     padding:'13px 16px', background:'var(--paper)',
                     border:'1px solid var(--hair-2)', borderRadius:'var(--r-md)',
@@ -1459,7 +1483,7 @@ function ChatScreen({
                       width:32, height:32, borderRadius:'50%', background:'var(--cream-2)',
                       display:'grid', placeItems:'center', fontSize:16, flexShrink:0,
                     }}>{p.emoji}</span>
-                    <span style={{ flex:1 }}>{p[lang]||p.en}</span>
+                    <span style={{ flex:1 }}>{p.text}</span>
                     <I.arrow size={15} stroke="var(--ink-3)"/>
                   </button>
                 ))}
