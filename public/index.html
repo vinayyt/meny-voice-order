@@ -317,6 +317,7 @@ const T = {
     demoNote:'🔑 Demo-modus: Sett RESEND_API_KEY og ORDER_EMAIL i Netlify for å sende ekte e-post.',
     orderError:'Kunne ikke sende bestilling. Prøv igjen.',
     connectionError:'Beklager, en feil oppstod. Prøv igjen.',
+    voiceFallback:'Talegjenkjenning på dette språket støttes ikke av nettleseren. Bruker engelsk.',
     clearChat:   'Ny samtale',
     clearChatConfirm: 'Start en ny samtale? Handlekurven og meldingene slettes.',
   },
@@ -379,6 +380,7 @@ const T = {
     demoNote:'🔑 Demo mode: Set RESEND_API_KEY and ORDER_EMAIL in Netlify to send real emails.',
     orderError:'Could not send order. Please try again.',
     connectionError:'Sorry, an error occurred. Please try again.',
+    voiceFallback:'Speech recognition for this language is not supported by your browser. Using English instead.',
     clearChat:   'New chat',
     clearChatConfirm: 'Start a new chat? Your cart and messages will be cleared.',
   },
@@ -441,6 +443,7 @@ const T = {
     demoNote:'🔑 डेमो मोड: वास्तविक ईमेल भेजने के लिए Netlify में RESEND_API_KEY और ORDER_EMAIL सेट करें।',
     orderError:'ऑर्डर नहीं भेजा जा सका। कृपया पुनः प्रयास करें।',
     connectionError:'क्षमा करें, एक त्रुटि हुई। कृपया पुनः प्रयास करें।',
+    voiceFallback:'इस भाषा में वाक् पहचान आपके ब्राउज़र द्वारा समर्थित नहीं है। अंग्रेज़ी का उपयोग किया जा रहा है।',
     clearChat:   'नई चैट',
     clearChatConfirm: 'नई चैट शुरू करें? आपकी कार्ट और संदेश हट जाएंगे।',
   },
@@ -503,6 +506,7 @@ const T = {
     demoNote:'🔑 ಡೆಮೊ ಮೋಡ್: ನಿಜವಾದ ಇಮೇಲ್ ಕಳುಹಿಸಲು Netlify ನಲ್ಲಿ RESEND_API_KEY ಮತ್ತು ORDER_EMAIL ಹೊಂದಿಸಿ.',
     orderError:'ಆರ್ಡರ್ ಕಳುಹಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
     connectionError:'ಕ್ಷಮಿಸಿ, ಒಂದು ದೋಷ ಸಂಭವಿಸಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
+    voiceFallback:'ಈ ಭಾಷೆಯ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆಯನ್ನು ನಿಮ್ಮ ಬ್ರೌಸರ್ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ. ಇಂಗ್ಲಿಷ್ ಬಳಸಲಾಗುತ್ತಿದೆ.',
     clearChat:   'ಹೊಸ ಚಾಟ್',
     clearChatConfirm: 'ಹೊಸ ಚಾಟ್ ಪ್ರಾರಂಭಿಸಬೇಕೇ? ನಿಮ್ಮ ಕಾರ್ಟ್ ಮತ್ತು ಸಂದೇಶಗಳು ತೆಗೆದುಹಾಕಲ್ಪಡುತ್ತವೆ.',
   },
@@ -921,34 +925,43 @@ function OnboardingScreen({ onDone, lang, setLang, hasActiveSession }) {
 // VOICE OVERLAY
 // FIX #1: stale closure fixed with transcriptRef
 // ═══════════════════════════════════════════════════════════════════
+// Locales not supported by browser Web Speech API — fall back to en-US
+const SPEECH_UNSUPPORTED = ['kn-IN'];
+
 function VoiceOverlay({ lang, onClose, onTranscript }) {
   const [phase, setPhase] = useState('idle'); // idle | listening | processing | unsupported | error
   const [displayTranscript, setDisplayTranscript] = useState('');
+  const [usingFallback, setUsingFallback] = useState(false);
   const transcriptRef = useRef('');   // always current — never stale in callbacks
   const recRef = useRef(null);
   const t = T[lang];
 
-  const start = () => {
+  const startWithLocale = (locale, isFallback = false) => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { setPhase('unsupported'); return; }
     const rec = new SR();
-    rec.lang = SPEECH_LOCALE[lang] || 'en-US';
+    rec.lang = locale;
     rec.continuous = false;
     rec.interimResults = true;
 
-    rec.onstart = () => { transcriptRef.current = ''; setDisplayTranscript(''); setPhase('listening'); };
+    rec.onstart = () => {
+      transcriptRef.current = '';
+      setDisplayTranscript('');
+      setUsingFallback(isFallback);
+      setPhase('listening');
+    };
 
     rec.onresult = e => {
       const txt = Array.from(e.results).map(r => r[0].transcript).join('');
-      transcriptRef.current = txt;          // update ref immediately
-      setDisplayTranscript(txt);            // update display state
+      transcriptRef.current = txt;
+      setDisplayTranscript(txt);
     };
 
     rec.onend = () => {
       if (recRef.current === rec && transcriptRef.current) {
         setPhase('processing');
         setTimeout(() => {
-          onTranscript(transcriptRef.current);  // always the latest value
+          onTranscript(transcriptRef.current);
           onClose();
         }, 700);
       } else {
@@ -958,11 +971,24 @@ function VoiceOverlay({ lang, onClose, onTranscript }) {
 
     rec.onerror = (e) => {
       transcriptRef.current = '';
+      // If the locale isn't supported, retry automatically with en-US
+      if (e.error === 'language-not-supported' && locale !== 'en-US') {
+        recRef.current = null;
+        startWithLocale('en-US', true);
+        return;
+      }
       setPhase('error');
       setTimeout(() => setPhase('idle'), 3000);
     };
+
     rec.start();
     recRef.current = rec;
+  };
+
+  const start = () => {
+    const locale = SPEECH_LOCALE[lang] || 'en-US';
+    const isFallback = SPEECH_UNSUPPORTED.includes(locale);
+    startWithLocale(isFallback ? 'en-US' : locale, isFallback);
   };
 
   const stop = () => {
@@ -1069,6 +1095,15 @@ function VoiceOverlay({ lang, onClose, onTranscript }) {
               }}/>
             </div>
             <Waveform active bars={24} color="var(--meny)"/>
+            {usingFallback && (
+              <div style={{
+                marginTop:14, padding:'8px 12px', borderRadius:'var(--r-sm)',
+                background:'var(--cream-2)', fontSize:12, color:'var(--ink-3)',
+                display:'flex', alignItems:'center', gap:6,
+              }}>
+                <I.info size={13}/> {t.voiceFallback}
+              </div>
+            )}
           </div>
         )}
         {phase === 'processing' && (
